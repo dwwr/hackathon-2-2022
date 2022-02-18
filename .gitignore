@@ -2,4 +2,11 @@
 *.3dsx
 *.elf
 *.smdh
+*.jpg
+*.jpeg
+*.png
+
 node_modules/
+httptest/
+.vscode
+.DS_Store

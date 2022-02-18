@@ -21,7 +21,7 @@
 
 
 
-Result http_post(const char* url, const char* data)
+Result http_post(const char* url, const u8* data)
 {
 	Result ret=0;
 	httpcContext context;
@@ -52,16 +52,16 @@ Result http_post(const char* url, const char* data)
 		// If you want to send form data in your request, use:
 		//ret = httpcAddRequestHeaderField(&context, "Content-Type", "multipart/form-data");
 		// If you want to send raw JSON data in your request, use:
-		ret = httpcAddRequestHeaderField(&context, "Content-Type", "application/json");
+		ret = httpcAddRequestHeaderField(&context, "Content-Type", "application/octet-stream");
 		printf("return from httpcAddRequestHeaderField: %" PRIx32 "\n",ret);
 
 		// Post specified data.
 		// If you want to add a form field to your request, use:
 		//ret = httpcAddPostDataAscii(&context, "data", value);
 		// If you want to add a form field containing binary data to your request, use:
-		//ret = httpcAddPostDataBinary(&context, "field name", yourBinaryData, length);
+		ret = httpcAddPostDataBinary(&context, "data", data, sizeof(data));
 		// If you want to add raw data to your request, use:
-		ret = httpcAddPostDataRaw(&context, (u32*)data, strlen(data));
+		// ret = httpcAddPostDataRaw(&context, (u8*)data, strlen(data));
 		printf("return from httpcAddPostDataRaw: %" PRIx32 "\n",ret);
 
 		ret = httpcBeginRequest(&context);
@@ -240,7 +240,6 @@ void takePicture3D(u8 *buf) {
 	svcCloseHandle(camReceiveEvent2);
 
 	printf("CAMU_Activate: 0x%08X\n", (unsigned int) CAMU_Activate(SELECT_NONE));
-  http_post("http://9a17-2601-1c2-1900-70a0-00-61ac.ngrok.io/", "hello World");
 }
 
 int main() {
@@ -248,6 +247,7 @@ int main() {
 	acInit();
 	gfxInitDefault();
 	consoleInit(GFX_BOTTOM, NULL);
+  httpcInit(4 * 1024 * 1024);
 
 	// Enable double buffering to remove screen tearing
 	gfxSetDoubleBuffering(GFX_TOP, true);
@@ -312,6 +312,7 @@ int main() {
 			gfxSwapBuffers();
 			held_R = true;
 			takePicture3D(buf);
+			http_post("http://9a17-2601-1c2-1900-70a0-00-61ac.ngrok.io", buf);
 		} else if (!(kHeld & KEY_R)) {
 			held_R = false;
 		}
@@ -332,6 +333,7 @@ int main() {
 	}
 
 	// Exit
+	httpcExit();
 	free(buf);
 	cleanup();
 
